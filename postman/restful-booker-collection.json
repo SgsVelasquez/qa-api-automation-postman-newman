@@ -1,0 +1,241 @@
+{
+  "info": {
+    "name": "Restful Booker - API Tests",
+    "description": "Automação de testes de API pública usando Postman e Newman.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/ping"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code deve ser 201', function () {",
+              "    pm.response.to.have.status(201);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Create Token",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{base_url}}/auth",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"password123\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code deve ser 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "const json = pm.response.json();",
+              "",
+              "pm.test('Deve retornar token', function () {",
+              "    pm.expect(json.token).to.exist;",
+              "});",
+              "",
+              "pm.collectionVariables.set('token', json.token);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Create Booking",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{base_url}}/booking",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"firstname\": \"Sergio\",\n  \"lastname\": \"QA\",\n  \"totalprice\": 350,\n  \"depositpaid\": true,\n  \"bookingdates\": {\n    \"checkin\": \"2026-05-01\",\n    \"checkout\": \"2026-05-05\"\n  },\n  \"additionalneeds\": \"Breakfast\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code deve ser 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "const json = pm.response.json();",
+              "",
+              "pm.test('Deve retornar bookingid', function () {",
+              "    pm.expect(json.bookingid).to.exist;",
+              "});",
+              "",
+              "pm.test('Firstname deve ser Sergio', function () {",
+              "    pm.expect(json.booking.firstname).to.eql('Sergio');",
+              "});",
+              "",
+              "pm.collectionVariables.set('booking_id', json.bookingid);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Get Created Booking",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/booking/{{booking_id}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code deve ser 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "const json = pm.response.json();",
+              "",
+              "pm.test('Deve retornar o booking criado', function () {",
+              "    pm.expect(json.firstname).to.eql('Sergio');",
+              "    pm.expect(json.lastname).to.eql('QA');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Update Booking",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "token={{token}}"
+          }
+        ],
+        "url": "{{base_url}}/booking/{{booking_id}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"firstname\": \"Sergio\",\n  \"lastname\": \"Velasquez\",\n  \"totalprice\": 500,\n  \"depositpaid\": true,\n  \"bookingdates\": {\n    \"checkin\": \"2026-05-10\",\n    \"checkout\": \"2026-05-15\"\n  },\n  \"additionalneeds\": \"Dinner\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code deve ser 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "const json = pm.response.json();",
+              "",
+              "pm.test('Lastname deve ser atualizado', function () {",
+              "    pm.expect(json.lastname).to.eql('Velasquez');",
+              "});",
+              "",
+              "pm.test('Totalprice deve ser 500', function () {",
+              "    pm.expect(json.totalprice).to.eql(500);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Delete Booking",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "token={{token}}"
+          }
+        ],
+        "url": "{{base_url}}/booking/{{booking_id}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code deve ser 201', function () {",
+              "    pm.response.to.have.status(201);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Validate Deleted Booking",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/booking/{{booking_id}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Booking deletado deve retornar 404', function () {",
+              "    pm.response.to.have.status(404);",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://restful-booker.herokuapp.com"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "booking_id",
+      "value": ""
+    }
+  ]
+}
